@@ -1,145 +1,238 @@
-### MacOS System Cleanup Guide 🧹
+<div align="center">
+  <h1 align="center">
+    MacOS System Cleanup Guide
+    <p></p>
+    <img height="100" alt="ticket" src="https://github.com/user-attachments/assets/078226ad-d5c1-429e-b57c-43e147e09083" />
+  </h1>
+  <p>Efficient, safe, and professional way to clean caches, logs, and temporary files on macOS ⭐️</p>
+</div>
 
-> Efficient, safe, and professional way to clean caches, logs, and temporary files on macOS ⭐️
+> ⚠️ Disclaimer <br>
+This script is powerful and uses sudo in multiple places. Review each command carefully before executing <br>
+Some paths may be system-specific. Always test commands individually before running them in bulk.
 
-### 📝 Important Notes
+### 📌 What This Script Does
+- Clears user and system caches
+- Removes old logs
+- Deletes Time Machine local snapshots
+- Cleans Homebrew cache
+- Clears Xcode derived data
+- Cleans browser and VS Code cache
+- Flushes DNS & system cache
+- Rebuilds Spotlight index
+- Removes old system logs
 
-- Always **backup important files** before running cleanup commands ⚠
-- Commands using `sudo` require **admin privileges**.  
-- These commands are **safe for daily maintenance**, but deleting files outside caches/logs is **not recommended**.  
-- Running cleanup may **temporarily affect app performance** until caches rebuild.  
+### ⚠️ Important Safety Guidelines
+Before running:
+1. ✅ Backup important data (Time Machine recommended)
+2. ✅ Read every command
+3. ❌ Never run blindly from the internet
+4. 🧪 Test commands individually first
+5. 🔐 Only use sudo when necessary
 
+### 🧼 Cleanup Commands
 
-### 📦 1. Clear User Cache
-
+### 1. Clear User Cache
 ```bash
 rm -rf ~/Library/Caches/*
 ```
-Description:
-Deletes all caches in your user Library. Apps will rebuild them automatically.
 
-Effect:
-- Frees disk space
-- Resets temporary app data
+**What it does?** <br>
+Deletes application cache stored in your user directory.
 
+**Safe?** <br>
+Yes. Apps regenerate cache automatically.
 
-### 📜 2. Clear System Cache
+---
+
+### 2. Clear System Cache
 ```bash
 sudo rm -rf /Library/Caches/*
 ```
 
-Description:
-Removes system-wide caches maintained by macOS and apps.
+**What it does?** <br>
+Removes system-wide cached files.
 
-Effect:
+**Safe?** <br>
+Generally safe, but requires admin privileges.
 
-- Frees disk space
-- Requires admin privileges
+---
 
-### 🗂 3. Clear Temporary Folders
-```bash
-sudo rm -rf /private/var/folders/*
-```
-
-Description:
-Removes temporary files used by macOS and apps.
-
-Effect:
-
-- Frees disk space
-- macOS will automatically recreate required folders
-
-### 📑 4. Remove Old System Logs
+### 3. Delete Old Logs (Older than 7 Days)
 ```bash
 sudo find /Library/Logs -type f -mtime +7 -delete
 sudo find /private/var/log -type f -mtime +7 -delete
 ```
 
-Description:
-Deletes log files older than 7 days.
+**What it does?** <br>
+Deletes logs older than 7 days.
 
-Effect:
+**Why helpful?** <br>
+Prevents log files from consuming disk space.
 
-- Reduces disk usage
-- Keeps recent logs for troubleshooting
+---
 
-### 🌐 5. Flush DNS Cache
+### 4. Flush DNS Cache
 ```bash
-sudo dscacheutil -flushcache; sudo killall -HUP mDNSResponder
+sudo dscacheutil -flushcache
+sudo killall -HUP mDNSResponder
 ```
 
-Description:
-Resets DNS cache.
+**What it does?** <br>
+Clears DNS cache. Useful if websites are not resolving correctly.
 
-Effect:
+---
 
-- Fixes network or connectivity issues
-
-- Useful after changing DNS settings
-
-### 🧸 6. Free Up Inactive Memory
+### 5. Clear Memory Cache (RAM)
 ```bash
 sudo purge
 ```
 
-Description:
-Clears inactive memory to free RAM.
+**What it does?** <br>
+Frees inactive RAM.
 
-Effect:
+**Note:** <br>
+Modern macOS manages memory well. This is usually unnecessary.
 
-- Helps improve performance
+---
 
-- Recommended when experiencing slowdowns
-
-### 🔮 7. Reindex Spotlight
+### 6. Rebuild Spotlight Index
 ```bash
 sudo mdutil -E /
 ```
 
-Description:
-Forces macOS Spotlight to reindex the entire drive.
+**What it does?** <br>
+Erases and rebuilds Spotlight search index.
 
-Effect:
+**Use only if:** <br>
+Spotlight search is not working properly.
 
-- Fixes search issues
+---
 
-- Rebuilds indexing for faster file search
-
-### ✅ Pro Tips for Safe Cleanup
-
-- Run commands one at a time to monitor effects.
-
-- Avoid deleting system-critical files.
-
-- Restart your Mac after cleanup for maximum efficiency.
-
-- Combine this with regular disk maintenance and app updates for optimal performance.
-
-### 🖥 Optional: Combine All Commands into One Script
+### 7. Delete Time Machine Local Snapshots
 ```bash
-#!/bin/bash
-echo "🧹 Starting macOS cleanup..."
-rm -rf ~/Library/Caches/*
-sudo rm -rf /Library/Caches/*
-sudo find /Library/Logs -type f -mtime +7 -delete
-sudo find /private/var/log -type f -mtime +7 -delete
-sudo rm -rf /private/var/folders/*
-sudo dscacheutil -flushcache; sudo killall -HUP mDNSResponder
-sudo purge
-sudo mdutil -E /
-echo "✅ Cleanup complete!"
+tmutil listlocalsnapshots /
+sudo tmutil deletelocalsnapshots <snapshot-date>
 ```
 
-Instructions:
-
-- Save as mac_cleanup.sh
-
-- Make it executable:
+**Or automated:**
 ```bash
-chmod +x mac_cleanup.sh
+for d in $(tmutil listlocalsnapshots / | grep -oE '[0-9]{4}-[0-9]{2}-[0-9]{2}-[0-9]{6}'); do sudo tmutil deletelocalsnapshots $d; done
 ```
 
-Run the script:
+**What it does?** <br>
+Deletes local backup snapshots that consume disk space.
+
+---
+
+### 8. Homebrew Cleanup
 ```bash
-./mac_cleanup.sh
+brew cleanup -s
+rm -rf $(brew --cache)
 ```
+
+**What it does?** <br>
+Removes outdated formulae and cached downloads.
+
+---
+
+### 9. Xcode Cleanup
+```bash
+rm -rf ~/Library/Developer/Xcode/DerivedData/*
+```
+
+**What it does?** <br>
+Removes build artifacts from Xcode.
+
+**Safe?** <br>
+Yes. Rebuilt automatically on next build.
+
+---
+
+### 10. VS Code Cache Cleanup
+```bash
+rm -rf ~/Library/Application\ Support/Code/CachedData/*
+rm -rf ~/Library/Application\ Support/Code/User/WorkspaceStorage/*
+rm -rf ~/Library/Application\ Support/Code/logs/*
+```
+
+**What it does?** <br>
+Removes temporary and cached workspace data.
+
+---
+
+### 11. Google Chrome Cleanup
+```bash
+rm -rf ~/Library/Application\ Support/Google/Chrome/*/Cache/*
+rm -rf ~/Library/Application\ Support/Google/Chrome/*/Code\ Cache/*
+rm -rf ~/Library/Application\ Support/Google/Chrome/*/Service\ Worker/CacheStorage/*
+```
+
+**What it does?** <br>
+Clears browser cache for all profiles.
+
+**Warning:** <br>
+Will log you out of some websites.
+
+---
+
+### 12. Remove Old Logs (3 Days)
+```bash
+sudo find /var/log -type f -mtime +3 -delete
+```
+
+**What it does?** <br>
+Deletes logs older than 3 days.
+
+---
+
+### 13. Reset Font Cache
+```bash
+atsutil databases -remove
+```
+
+**What it does?** <br>
+Useful if fonts behave incorrectly.
+
+---
+
+### 14. Reset QuickLook Cache
+```bash
+qlmanage -r cache
+```
+
+**What it does?** <br>
+Fixes preview glitches in Finder.
+
+---
+
+### ⚠️ Commands That Are SYSTEM-SPECIFIC
+
+These may vary depending on your setup:
+
+```bash
+rm -rf ~/Library/Application\ Support/Google/GoogleSoftwareUpdate/*
+rm -rf ~/Library/Application\ Support/Code/*
+```
+
+**Note:** <br>
+If you don’t use the following applications, you can remove their cleanup sections safely:
+
+- VS Code  
+- Chrome  
+- Xcode  
+- Homebrew
+
+### 🔐 Final Warning
+
+Some commands like:
+
+```bash
+sudo rm -rf /private/var/log/*
+sudo rm -rf /Library/Logs/*
+```
+
+**Warning:** <br>
+These can remove diagnostic data needed for troubleshooting.
+
+Use responsibly.
